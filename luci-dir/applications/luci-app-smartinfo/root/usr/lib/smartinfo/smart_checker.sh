@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright (C) 2016 NVACG , 穿越蓝天/animefans_xj
 # af_xj@hotmail.com
 #
@@ -13,7 +13,7 @@
 
 config_load "smartinfo"
 
-local enable time time_step time_unit log_enabled log_path touch_enable touch_path
+declare time time_step time_unit log_enabled log_path touch_enable touch_path
 
 config_get  enabled  main enabled
 config_get  time_step  main  time_step
@@ -64,34 +64,34 @@ echo ""
 main_process() {
   do_smart_check $1
   local RETVAL=$?
-  local Device=`echo $1 |awk -F/ '{print $NF}`
+  local Device=$(echo $1 |awk -F/ '{print $NF}')
   local Model
   # 如果指定的磁盘在线则获取型号
-  [ -d /sys/class/block/$Device ] && Model=`cat /sys/class/block/$Device/device/vendor``cat /sys/class/block/$Device/device/model`
+  [ -d /sys/class/block/$Device ] && Model=$(cat /sys/class/block/$Device/device/vendor)$(cat /sys/class/block/$Device/device/model)
   # 如果路径不存在则创建目录
   [ $log_enabled ] && ! [ -d $log_path ] && mkdir -p $log_path
   [ $touch_enabled ] && ! [ -d $touch_path ] && mkdir -p $touch_path
   case $RETVAL in
     0)
       # 设备健康
-      [ $log_enabled ] && [ -d $log_path ] && echo `date '+%Y-%m-%d %H:%M'`" [$Model]: Passed Disk Check." >> $log_path/smartinfo_$Device.log
+      [ $log_enabled ] && [ -d $log_path ] && echo $(date '+%Y-%m-%d %H:%M')" [$Model]: Passed Disk Check." >> $log_path/smartinfo_$Device.log
       [ -f $touch_path/$Device-DiskDamaged ] && rm $touch_path/$Device-DiskDamaged
     ;;
     1)
       # 设备故障
       logger -p daemon.warn -t smartinfo "Device $1 S.M.A.R.T status Failed!"
-      [ $log_enabled ] && [ -d $log_path ] && echo `date '+%Y-%m-%d %H:%M'`" [$Model]: Disk Damaged." >> $log_path/smartinfo_$Device.log
+      [ $log_enabled ] && [ -d $log_path ] && echo $(date '+%Y-%m-%d %H:%M')" [$Model]: Disk Damaged." >> $log_path/smartinfo_$Device.log
       [ $touch_enabled ] && [ -d $touch_path ] && touch $touch_path/$Device-DiskDamaged
     ;;
     2)
       # 设备离线
       logger -p daemon.warn -t smartinfo "Device $1 Offline."
-      [ $log_enabled ] && [ -d $log_path ] && echo `date '+%Y-%m-%d %H:%M'`" : Disk Offline." >> $log_path/smartinfo_$Device.log
+      [ $log_enabled ] && [ -d $log_path ] && echo $(date '+%Y-%m-%d %H:%M')" : Disk Offline." >> $log_path/smartinfo_$Device.log
       [ -f $touch_path/$Device-DiskDamaged ] && rm $touch_path/$Device-DiskDamaged
     ;;
     3)
       # 不支持S.M.A.R.T
-      [ $log_enabled ] && [ -d $log_path ] && echo `date '+%Y-%m-%d %H:%M'`" [$Model]: Unsupport S.M.A.R.T." >> $log_path/smartinfo_$Device.log
+      [ $log_enabled ] && [ -d $log_path ] && echo $(date '+%Y-%m-%d %H:%M')" [$Model]: Unsupport S.M.A.R.T." >> $log_path/smartinfo_$Device.log
       [ -f $touch_path/$Device-DiskDamaged ] && rm $touch_path/$Device-DiskDamaged
     ;;
     *)
@@ -102,7 +102,7 @@ main_process() {
 
 while [ true ]
 do
-  echo `date '+%Y-%m-%d %H:%M'`" Execute the S.M.A.R.T Check."
+  echo $(date '+%Y-%m-%d %H:%M')" Execute the S.M.A.R.T Check."
   # 执行S.M.A.R.T检测
   config_list_foreach main device main_process
 
